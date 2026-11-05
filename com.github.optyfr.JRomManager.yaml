@@ -40,23 +40,31 @@ modules:
         url: https://github.com/optyfr/JRomManager/releases/download/2.5.1/JRomManager-2.5.1.zip
         sha256: 9e35bafef038af2ed0ca5d2223b7a1239e038f541948d7028917f38cfd076a0d
         dest-filename: JRomManager.zip
+        # 3.x requires Java 21/JavaFX and a different desktop distribution.
+        # Keep both sources on stable 2.x until that packaging migration is done.
         x-checker-data:
           type: json
-          url: https://api.github.com/repos/optyfr/JRomManager/releases/latest
-          timestamp-query: .published_at
-          url-query: .assets[] | select(.name=="JRomManager-" + $version + ".zip")
+          url: https://api.github.com/repos/optyfr-org/JRomManager/releases?per_page=100
+          timestamp-query: .[] | select(.tag_name == $version) | .published_at
+          url-query: .[] | select(.tag_name == $version) | .assets[] | select(.name=="JRomManager-" + $version + ".zip")
             | .browser_download_url
-          version-query: .tag_name
+          version-query: >-
+            [.[] | select(.draft == false and .prerelease == false and
+            (.tag_name | test("^2\\.[0-9]+\\.[0-9]+$")))]
+            | max_by(.published_at) | .tag_name
       - type: archive
         url: https://github.com/optyfr/JRomManager/releases/download/2.5.1/JRomManager-2.5.1-src.tgz
         sha256: aafaea3898344f13c62b735570752708439078bc80b38d8a5be1e616e80c367f
         x-checker-data:
           type: json
-          url: https://api.github.com/repos/optyfr/JRomManager/releases/latest
-          timestamp-query: .published_at
-          url-query: .assets[] | select(.name=="JRomManager-" + $version + "-src.tgz")
+          url: https://api.github.com/repos/optyfr-org/JRomManager/releases?per_page=100
+          timestamp-query: .[] | select(.tag_name == $version) | .published_at
+          url-query: .[] | select(.tag_name == $version) | .assets[] | select(.name=="JRomManager-" + $version + "-src.tgz")
             | .browser_download_url
-          version-query: .tag_name
+          version-query: >-
+            [.[] | select(.draft == false and .prerelease == false and
+            (.tag_name | test("^2\\.[0-9]+\\.[0-9]+$")))]
+            | max_by(.published_at) | .tag_name
       - type: file
         path: com.github.optyfr.JRomManager.appdata.xml
       - type: file
